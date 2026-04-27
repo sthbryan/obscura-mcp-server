@@ -2,14 +2,39 @@
  * Clean HTML - Remove unnecessary tags for LLM consumption
  */
 
+import { parse } from "node-html-parser";
+
+const USELESS_TAGS = [
+  "head",
+  "script",
+  "style",
+  "noscript",
+  "iframe",
+  "svg",
+  "form",
+  "input",
+  "button",
+];
+
+const USEFUL_ATTRS = ["href", "src"];
+
 export function cleanHtml(html: string): string {
-  return html
-    .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, "")
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<script\b[^>]*\/?>/gi, "")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  const root = parse(html);
+
+  for (const tag of USELESS_TAGS) {
+    for (const el of root.querySelectorAll(tag)) {
+      el.remove();
+    }
+  }
+
+  for (const el of root.querySelectorAll("*")) {
+    const attrs = el.attributes;
+    for (const attr of Object.keys(attrs)) {
+      if (!USEFUL_ATTRS.includes(attr)) {
+        el.removeAttribute(attr);
+      }
+    }
+  }
+
+  return root.toString();
 }
