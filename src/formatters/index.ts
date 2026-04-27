@@ -3,11 +3,10 @@
  * Centralizes all HTML output formatters
  */
 
-import { formatHtml } from "./html.js";
-import { formatMarkdown } from "./markdown.js";
-import { formatText } from "./text.js";
-
-export type FormatterType = "html" | "markdown" | "text";
+import type { FormatterType } from "@/types/formatters";
+import { formatHtml } from "./html";
+import { formatMarkdown } from "./markdown";
+import { formatText } from "./text";
 
 export const formatters: Record<FormatterType, (html: string) => Promise<string>> = {
   html: formatHtml,
