@@ -10,7 +10,7 @@ import type {
   ServerRequest,
 } from "@modelcontextprotocol/sdk/types";
 import { format } from "@/formatters";
-import { cleanHtml } from "@/formatters/clean";
+import { cleanHtml, sanitizeWhitespace } from "@/formatters/clean";
 import type { FetchInput } from "@/types/fetch";
 import type { FormatterType } from "@/types/formatters";
 import { checkObscura, execObscura } from "@/utils/obscura";
@@ -67,7 +67,7 @@ async function fetchWithObscura(
               type,
               source: "obscura",
               length: content.length,
-              content,
+              content: sanitizeWhitespace(content, type as FormatterType),
             },
             null,
             2
@@ -119,7 +119,7 @@ async function fetchWithNative(
             type,
             source: "native",
             length: content.length,
-            content,
+            content: sanitizeWhitespace(content, type as FormatterType),
           },
           null,
           2
