@@ -10,6 +10,7 @@ import type {
   ServerRequest,
 } from "@modelcontextprotocol/sdk/types";
 import { format } from "@/formatters";
+import { cleanHtml } from "@/formatters/clean";
 import type { FetchInput } from "@/types/fetch";
 import type { FormatterType } from "@/types/formatters";
 import { checkObscura, execObscura } from "@/utils/obscura";
@@ -50,7 +51,7 @@ async function fetchWithObscura(
     const lines = stdout
       .split("\n")
       .filter((line) => !line.startsWith("Fetching") && !line.startsWith("Page loaded"));
-    let content = lines.join("\n").trim();
+    let content = cleanHtml(lines.join("\n").trim());
 
     if (type === "markdown") {
       content = await format("markdown", content);

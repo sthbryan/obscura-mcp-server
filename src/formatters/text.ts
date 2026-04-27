@@ -3,16 +3,12 @@
  * Extracts visible text content from HTML
  */
 
+import { cleanHtml } from "./clean";
+
 export async function formatText(html: string): Promise<string> {
-  const text = html
-
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-
+  const text = cleanHtml(html)
     .replace(/<\/(p|div|h[1-6]|li|tr)>/gi, "\n")
-
     .replace(/<[^>]+>/g, "")
-
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")

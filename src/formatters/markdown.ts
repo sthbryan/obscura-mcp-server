@@ -4,6 +4,7 @@
  */
 
 import TurndownService from "turndown";
+import { cleanHtml } from "./clean";
 
 const turndown = new TurndownService({
   headingStyle: "atx",
@@ -12,6 +13,6 @@ const turndown = new TurndownService({
 });
 
 export async function formatMarkdown(html: string): Promise<string> {
-  const markdown = turndown.turndown(html);
+  const markdown = turndown.turndown(cleanHtml(html));
   return markdown;
 }
