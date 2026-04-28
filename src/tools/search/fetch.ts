@@ -6,7 +6,7 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import type { SearchResult } from "@/types/search";
 
-export async function searchWithDuckDuckGo(query: string, limit: number): Promise<CallToolResult> {
+export async function searchWithNative(query: string, limit: number): Promise<CallToolResult> {
   try {
     const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
 
@@ -55,7 +55,7 @@ export async function searchWithDuckDuckGo(query: string, limit: number): Promis
           text: JSON.stringify(
             {
               query,
-              source: "fetch",
+              source: "native",
               results,
             },
             null,

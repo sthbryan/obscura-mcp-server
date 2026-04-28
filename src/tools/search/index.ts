@@ -6,7 +6,7 @@ import type {
 } from "@modelcontextprotocol/sdk/types";
 import type { SearchInput } from "@/types/search";
 import { checkObscura } from "@/utils/obscura";
-import { searchWithDuckDuckGo } from "./fetch";
+import { searchWithNative } from "./fetch";
 import { searchWithObscura } from "./obscura";
 
 export function createSearchHandler() {
@@ -23,7 +23,7 @@ export function createSearchHandler() {
         return await searchWithObscura(query, limit);
       }
 
-      return await searchWithDuckDuckGo(query, limit);
+      return await searchWithNative(query, limit);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       return {
