@@ -2,7 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import { fetchInputSchema } from "@/schemas/fetch";
 import { searchInputSchema } from "@/schemas/search";
 import { createFetchHandler } from "./fetch";
-import { createSearchHandler } from "./search/index";
+import { createSearchHandler } from "./search";
 
 export function registerTools(server: McpServer): void {
   server.registerTool(
