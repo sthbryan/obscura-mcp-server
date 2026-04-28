@@ -2,8 +2,8 @@
  * Clean HTML - Remove unnecessary tags for LLM consumption
  */
 
-import { FormatterType } from "@/types/formatters";
 import { parse } from "node-html-parser";
+import type { FormatterType } from "@/types/formatters";
 
 const USELESS_TAGS = [
   "head",
