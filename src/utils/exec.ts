@@ -9,22 +9,27 @@ import { getObscuraPath } from "./obscura";
 interface ExecOptions {
   args: string[];
   quiet?: boolean;
+  stealth?: boolean;
 }
 
 export async function execAsync(options: ExecOptions): Promise<string> {
-  const { args, quiet = true } = options;
+  const { args, quiet = true, stealth = false } = options;
 
   const obscuraPath = getObscuraPath();
   if (!obscuraPath) {
     throw new Error("Obscura not found");
   }
 
+  const finalArgs = [...args];
   if (quiet) {
-    args.push("--quiet");
+    finalArgs.push("--quiet");
+  }
+  if (stealth) {
+    finalArgs.push("--stealth");
   }
 
   return new Promise((resolve, reject) => {
-    const proc = spawn(obscuraPath, args);
+    const proc = spawn(obscuraPath, finalArgs);
 
     let stdout = "";
     let stderr = "";
