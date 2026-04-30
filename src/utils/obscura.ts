@@ -1,16 +1,11 @@
-import { exec, execSync } from "node:child_process";
-import { promisify } from "node:util";
+/**
+ * Obscura Utils
+ */
 
-const execAsync = promisify(exec);
+import { execSync } from "node:child_process";
 
 const OBSCURA_ENV = process.env.OBSCURA_PATH;
 const DEFAULT_OBSCURA_NAMES = ["obscura", "obscura.exe"];
-
-interface ObscuraStatus {
-  available: boolean;
-  path: string | null;
-  version: string | null;
-}
 
 /**
  * Get the path to the Obscura binary
@@ -30,33 +25,16 @@ export function getObscuraPath(): string | null {
 }
 
 /**
- * Check if Obscura is available and get version
+ * Check if Obscura is available
  */
-export async function checkObscura(): Promise<ObscuraStatus> {
+export async function checkObscura(): Promise<{ available: boolean }> {
   const path = getObscuraPath();
-
-  if (!path) {
-    return { available: false, path: null, version: null };
-  }
+  if (!path) return { available: false };
 
   try {
-    const { stdout } = await execAsync(`${path} --help`);
-    const version = stdout.includes("obscura") ? "unknown" : null;
-    return { available: true, path, version };
+    require("node:child_process").execSync(`${path} --help`, { stdio: "ignore" });
+    return { available: true };
   } catch {
-    return { available: false, path, version: null };
+    return { available: false };
   }
-}
-
-/**
- * Execute an Obscura command
- */
-export async function execObscura(args: string[]): Promise<{ stdout: string; stderr: string }> {
-  const path = getObscuraPath();
-  if (!path) {
-    throw new Error("Obscura not found");
-  }
-
-  const { stdout, stderr } = await execAsync(`${path} ${args.join(" ")}`);
-  return { stdout, stderr };
 }
