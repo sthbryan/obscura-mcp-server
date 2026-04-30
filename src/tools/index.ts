@@ -1,8 +1,10 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { fetchInputSchema } from "@/schemas/fetch";
+import { queryInputSchema } from "@/schemas/query";
 import { searchInputSchema } from "@/schemas/search";
-import { createFetchHandler } from "./fetch";
-import { createSearchHandler } from "./search";
+import { createFetchHandler } from "@/tools/fetch";
+import { createQueryHandler } from "@/tools/query";
+import { createSearchHandler } from "@/tools/search";
 
 export function registerTools(server: McpServer): void {
   server.registerTool(
@@ -23,5 +25,15 @@ export function registerTools(server: McpServer): void {
       inputSchema: searchInputSchema,
     },
     createSearchHandler()
+  );
+
+  server.registerTool(
+    "query",
+    {
+      title: "Query",
+      description: "Get specific data from a webpage using CSS selectors or text search.",
+      inputSchema: queryInputSchema,
+    },
+    createQueryHandler()
   );
 }
