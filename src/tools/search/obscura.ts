@@ -1,10 +1,13 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import type { SearchResult } from "@/types/search";
-import { execObscura } from "@/utils/obscura";
+import { execAsync } from "@/utils/exec";
 
 export async function searchWithObscura(query: string, limit: number): Promise<CallToolResult> {
   const searchUrl = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-  const { stdout } = await execObscura(["fetch", searchUrl, "--dump", "links", "--stealth"]);
+
+  const stdout = await execAsync({
+    args: ["fetch", searchUrl, "--dump", "links", "--stealth"],
+  });
 
   const results = parseLinks(stdout, searchUrl, limit);
 
