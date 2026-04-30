@@ -13,6 +13,8 @@ import type {
   ServerRequest,
 } from "@modelcontextprotocol/sdk/types";
 import type { QueryInput } from "@/types/query";
+import { checkObscura } from "@/utils/obscura";
+import { queryWithNative } from "./fetch";
 import { queryWithObscura } from "./obscura";
 
 export function createQueryHandler() {
@@ -22,10 +24,30 @@ export function createQueryHandler() {
   ): Promise<CallToolResult> => {
     const { url, selector, text } = args;
 
+    if (!selector && !text) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify({
+              error: "Either 'selector' or 'text' must be provided",
+            }),
+          },
+        ],
+        isError: true,
+      };
+    }
+
     try {
-      return await queryWithObscura(url, { selector, text });
+      const obscuraStatus = await checkObscura();
+
+      if (obscuraStatus.available) {
+        return await queryWithObscura(url, { selector, text });
+      }
+
+      return await queryWithNative(url, { selector, text });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Query failed";
+      const message = error instanceof Error ? error.message : "Unknown error";
       return {
         content: [{ type: "text", text: JSON.stringify({ error: message }) }],
         isError: true,
