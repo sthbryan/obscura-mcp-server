@@ -11,7 +11,8 @@ export async function fetchWithObscura(
   const dumpType = type === "markdown" ? "html" : type;
 
   const stdout = await execAsync({
-    args: ["fetch", url, "--dump", dumpType, "--stealth"],
+    args: ["fetch", url, "--dump", dumpType],
+    stealth: true,
   });
 
   const lines = stdout

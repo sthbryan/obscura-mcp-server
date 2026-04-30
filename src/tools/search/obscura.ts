@@ -6,7 +6,8 @@ export async function searchWithObscura(query: string, limit: number): Promise<C
   const searchUrl = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
 
   const stdout = await execAsync({
-    args: ["fetch", searchUrl, "--dump", "links", "--stealth"],
+    args: ["fetch", searchUrl, "--dump", "links"],
+    stealth: true,
   });
 
   const results = parseLinks(stdout, searchUrl, limit);
