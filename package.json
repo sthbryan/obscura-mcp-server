@@ -2,13 +2,18 @@
   "name": "obscura-mcp-server",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
+  "private": false,
+  "bin": {
+    "obscura-mcp": "./dist/index.js"
+  },
   "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
     "dev": "bun --watch src/index.ts",
     "start": "bun run src/index.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "check": "biome check --diagnostic-level=error ."
+    "check": "biome check --diagnostic-level=error .",
+    "prepublish": "bun run build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
