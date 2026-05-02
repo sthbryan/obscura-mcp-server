@@ -1,6 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
-import { parse } from "node-html-parser";
 import Fuse from "fuse.js";
+import { parse } from "node-html-parser";
 import { execAsync } from "@/utils/exec";
 
 interface QueryOptions {
@@ -79,7 +79,7 @@ export async function queryWithObscura(
   const allText = allElements.map((el) => el.text.trim()).filter((t) => t.length > 0);
 
   const fuse = new Fuse(allText, { threshold: 0.3 });
-  const matches = fuse.search(text!);
+  const matches = fuse.search(text || "").slice(0, 10);
 
   return {
     content: [

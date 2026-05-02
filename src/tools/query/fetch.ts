@@ -29,10 +29,7 @@ function findBestSelector(html: string): string {
   return DEFAULT_CONTENT_SELECTORS;
 }
 
-export async function queryWithNative(
-  url: string,
-  options: QueryOptions
-): Promise<CallToolResult> {
+export async function queryWithNative(url: string, options: QueryOptions): Promise<CallToolResult> {
   const { selector, text } = options;
 
   if (!selector && !text) {
@@ -73,11 +70,11 @@ export async function queryWithNative(
 
     const html = await response.text();
     let resolvedSelector = selector;
-    
+
     if (!resolvedSelector) {
       resolvedSelector = text ? DEFAULT_CONTENT_SELECTORS : findBestSelector(html);
     }
-    
+
     const result = parseHtml(html, { selector: resolvedSelector, text });
 
     return {
