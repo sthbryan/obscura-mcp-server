@@ -15,7 +15,8 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "check": "biome check --diagnostic-level=error .",
-    "prepublish": "bun run build"
+    "prepublish": "bun run build",
+    "postinstall": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
