@@ -6,7 +6,7 @@ This guide covers how to configure the Obscura MCP server with various AI client
 
 ### Method 1: Using bunx (recommended - no installation needed)
 
-Once published to npm (coming soon):
+Once published to npm:
 
 ```json
 {
