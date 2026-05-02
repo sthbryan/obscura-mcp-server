@@ -35,15 +35,7 @@ export async function queryWithObscura(
   }
 
   const stdout = await execAsync({
-    args: [
-      "fetch",
-      url,
-      ...(evalString ? ["--eval", evalString] : []),
-      "--wait-until",
-      "domcontentloaded",
-      "--dump",
-      "text",
-    ],
+    args: ["fetch", url, ...(evalString ? ["--eval", evalString] : []), "--dump", "text"],
     stealth: true,
   });
 

@@ -21,6 +21,8 @@ export async function execAsync(options: ExecOptions): Promise<string> {
   }
 
   const finalArgs = [...args];
+  finalArgs.push("--wait-until", "domcontentloaded");
+
   if (quiet) {
     finalArgs.push("--quiet");
   }
