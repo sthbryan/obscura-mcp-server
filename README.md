@@ -11,51 +11,27 @@ When Obscura is unavailable, it gracefully falls back to native fetch APIs.
 ## Tools
 
 ### `fetch_page`
-Fetch web content from a URL in various formats.
+Fetch web content from a URL.
 
 ```json
-{
-  "url": "https://example.com",
-  "type": "markdown"
-}
+{ "url": "https://example.com", "type": "markdown" }
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | string | Target URL |
-| `type` | string | Output format: `html`, `markdown`, or `text` |
 
 ### `search`
 Search the web and return results.
 
 ```json
-{
-  "query": "rust headless browser",
-  "limit": 5
-}
+{ "query": "rust headless browser", "limit": 5 }
 ```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `query` | string | Search query |
-| `limit` | number | Max results (default: 5) |
 
 ### `query`
-Query specific data from a webpage using CSS selectors or text search.
+Query a webpage using CSS selectors or text search.
 
 ```json
-{
-  "url": "https://example.com",
-  "selector": "h1",
-  "text": "Price"
-}
+{ "url": "https://example.com", "selector": "h1", "text": "title" }
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | string | Target URL |
-| `selector` | string | CSS selector (optional) |
-| `text` | string | Text to search for (optional) |
+> For client-specific configuration, see [INSTALL.md](./INSTALL.md).
 
 ## Requirements
 
@@ -64,21 +40,7 @@ Query specific data from a webpage using CSS selectors or text search.
 
 ## Installation
 
-```bash
-npm install
-# or
-bun install
-```
-
-## Configuration
-
-WIP
-
-### Custom Obscura Path
-
-```bash
-OBSCURA_PATH=/usr/local/bin/obscura bun run src/index.ts
-```
+See [INSTALL.md](./INSTALL.md) for setup with VSCode, Cursor, OpenCode, Claude Code, Codex, and Pi.
 
 ## Architecture
 
