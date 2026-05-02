@@ -14,9 +14,17 @@ export function createSearchHandler() {
     args: SearchInput,
     _extra: RequestHandlerExtra<ServerRequest, ServerNotification>
   ): Promise<CallToolResult> => {
-    const { query, limit } = args;
+    const { query, limit, source } = args;
 
     try {
+      if (source === "native") {
+        return await searchWithNative(query, limit);
+      }
+
+      if (source === "obscura") {
+        return await searchWithObscura(query, limit);
+      }
+
       const obscuraStatus = await checkObscura();
 
       if (obscuraStatus.available) {

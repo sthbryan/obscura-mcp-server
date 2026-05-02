@@ -14,9 +14,17 @@ export function createFetchHandler() {
     args: FetchInput,
     _extra: RequestHandlerExtra<ServerRequest, ServerNotification>
   ): Promise<CallToolResult> => {
-    const { url, type } = args;
+    const { url, type, source } = args;
 
     try {
+      if (source === "native") {
+        return await fetchWithNative(url, type);
+      }
+
+      if (source === "obscura") {
+        return await fetchWithObscura(url, type);
+      }
+
       const obscuraStatus = await checkObscura();
 
       if (obscuraStatus.available) {

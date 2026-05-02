@@ -72,7 +72,12 @@ export async function queryWithNative(
     }
 
     const html = await response.text();
-    const resolvedSelector = selector || findBestSelector(html);
+    let resolvedSelector = selector;
+    
+    if (!resolvedSelector) {
+      resolvedSelector = text ? DEFAULT_CONTENT_SELECTORS : findBestSelector(html);
+    }
+    
     const result = parseHtml(html, { selector: resolvedSelector, text });
 
     return {

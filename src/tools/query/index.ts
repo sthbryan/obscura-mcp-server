@@ -4,6 +4,7 @@
  *
  * @example selector: "h1" → extracts all matching elements
  * @example text: "Price" → finds element containing exact text
+ * @example source: "native" → force native fetch even if obscura available
  */
 
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol";
@@ -22,7 +23,7 @@ export function createQueryHandler() {
     args: QueryInput,
     _extra: RequestHandlerExtra<ServerRequest, ServerNotification>
   ): Promise<CallToolResult> => {
-    const { url, selector, text } = args;
+    const { url, selector, text, source } = args;
 
     if (!selector && !text) {
       return {
@@ -39,6 +40,14 @@ export function createQueryHandler() {
     }
 
     try {
+      if (source === "native") {
+        return await queryWithNative(url, { selector, text });
+      }
+
+      if (source === "obscura") {
+        return await queryWithObscura(url, { selector, text });
+      }
+
       const obscuraStatus = await checkObscura();
 
       if (obscuraStatus.available) {
