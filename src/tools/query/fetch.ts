@@ -1,15 +1,37 @@
-/**
- * Query with Native Fetch
- * Fallback implementation using fetch + HTML parsing
- */
-
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import Fuse from "fuse.js";
 import { parse } from "node-html-parser";
 
+interface QueryOptions {
+  selector?: string;
+  text?: string;
+}
+
+const MAIN_CONTENT_SELECTORS = [
+  "article",
+  'main[role="main"]',
+  ".post-content",
+  ".article-content",
+  ".entry-content",
+  "main",
+];
+
+const DEFAULT_CONTENT_SELECTORS = "p, h1, h2, h3, h4, h5, h6, li, a, span";
+
+function findBestSelector(html: string): string {
+  const root = parse(html);
+  for (const selector of MAIN_CONTENT_SELECTORS) {
+    const elements = root.querySelectorAll(selector);
+    if (elements.length > 0 && selector !== "body") {
+      return selector;
+    }
+  }
+  return DEFAULT_CONTENT_SELECTORS;
+}
+
 export async function queryWithNative(
   url: string,
-  options: { selector?: string; text?: string }
+  options: QueryOptions
 ): Promise<CallToolResult> {
   const { selector, text } = options;
 
@@ -50,7 +72,8 @@ export async function queryWithNative(
     }
 
     const html = await response.text();
-    const result = parseHtml(html, { selector, text });
+    const resolvedSelector = selector || findBestSelector(html);
+    const result = parseHtml(html, { selector: resolvedSelector, text });
 
     return {
       content: [
@@ -61,6 +84,7 @@ export async function queryWithNative(
               url,
               source: "native",
               selector,
+              selector_used: resolvedSelector,
               text,
               result,
               timestamp: new Date().toISOString(),
@@ -85,8 +109,17 @@ function parseHtml(html: string, options: { selector?: string; text?: string }):
   const root = parse(html);
 
   if (selector) {
-    const elements = root.querySelectorAll(selector);
-    return elements.map((el) => el.text.trim()).filter((t) => t.length > 0);
+    const escapedSelector = selector.replace(/'/g, "\\'");
+    const elements = root.querySelectorAll(escapedSelector);
+    const results = elements.map((el) => el.text.trim()).filter((t) => t.length > 0);
+
+    if (text && results.length > 0) {
+      const fuse = new Fuse(results, { threshold: 0.4 });
+      const matches = fuse.search(text);
+      return matches.map((m) => m.item);
+    }
+
+    return results;
   }
 
   if (text) {
