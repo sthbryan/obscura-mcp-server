@@ -19,16 +19,60 @@ const USELESS_TAGS = [
 
 const USEFUL_ATTRS = ["href", "src"];
 
-export function cleanHtml(html: string): string {
-  const root = parse(html);
+const NOISE_SELECTORS = [
+  "nav",
+  "footer",
+  "aside",
+  "header:not(article header)",
+  ".ads",
+  ".advertisement",
+  '[class*="ad-"]',
+  ".sidebar",
+  ".side-bar",
+  ".social",
+  ".share",
+  ".newsletter",
+  '[class*="cookie"]',
+  '[class*="popup"]',
+  ".nav",
+  ".menu",
+  ".header:not(header > h1)",
+  ".cookie",
+  ".popup",
+  '[role="banner"]',
+  '[role="navigation"]',
+  '[role="complementary"]',
+  '[aria-hidden="true"]',
+];
 
+export function removeNoiseElements(html: string): string {
+  const root = parse(html);
+  for (const selector of NOISE_SELECTORS) {
+    try {
+      for (const el of root.querySelectorAll(selector)) {
+        el.remove();
+      }
+    } catch {}
+  }
+
+  return root.toString();
+}
+
+export function cleanHtml(html: string): string {
+  let result = html;
+
+  const root = parse(result);
   for (const tag of USELESS_TAGS) {
     for (const el of root.querySelectorAll(tag)) {
       el.remove();
     }
   }
+  result = root.toString();
 
-  for (const el of root.querySelectorAll("*")) {
+  result = removeNoiseElements(result);
+
+  const cleanRoot = parse(result);
+  for (const el of cleanRoot.querySelectorAll("*")) {
     const attrs = el.attributes;
     for (const attr of Object.keys(attrs)) {
       if (!USEFUL_ATTRS.includes(attr)) {
@@ -37,7 +81,7 @@ export function cleanHtml(html: string): string {
     }
   }
 
-  return root.toString();
+  return cleanRoot.toString();
 }
 
 export function sanitizeWhitespace(text: string, type: FormatterType): string {
@@ -50,9 +94,4 @@ export function sanitizeWhitespace(text: string, type: FormatterType): string {
     .map((line) => line.trim())
     .join("\n")
     .trim();
-
-  // return text
-  //   .replace(/[\n\r\t]+/g, " ")
-  //   .replace(/\s{2,}/g, " ")
-  //   .trim();
 }

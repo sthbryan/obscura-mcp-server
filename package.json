@@ -32,6 +32,12 @@
     "turndown": "^7.2.4",
     "zod": "^4.3.6"
   },
-  "keywords": ["mcp", "model-context-protocol", "web-scraping", "html", "markdown"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "web-scraping",
+    "html",
+    "markdown"
+  ],
   "license": "MIT"
 }
