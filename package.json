@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "private": false,
+  "description": "MCP server for Obscura - web scraping, HTML to Markdown conversion, and URL content processing",
+  "main": "./dist/index.js",
   "bin": {
     "obscura-mcp": "./dist/index.js"
   },
@@ -29,5 +31,7 @@
     "node-html-parser": "^7.1.0",
     "turndown": "^7.2.4",
     "zod": "^4.3.6"
-  }
+  },
+  "keywords": ["mcp", "model-context-protocol", "web-scraping", "html", "markdown"],
+  "license": "MIT"
 }
