@@ -47,7 +47,7 @@ Add to your MCP servers config:
   "mcpServers": {
     "obscura": {
       "command": "bunx",
-      "args": ["obscura-mcp-server"]
+      "args": ["-y", "obscura-mcp-server"]
     }
   }
 }

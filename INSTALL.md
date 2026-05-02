@@ -13,7 +13,7 @@ Once published to npm:
   "mcpServers": {
     "obscura": {
       "command": "bunx",
-      "args": ["obscura-mcp-server"]
+      "args": ["-y", "obscura-mcp-server"]
     }
   }
 }
@@ -89,7 +89,7 @@ bun install
     "servers": {
       "obscura": {
         "command": "bunx",
-        "args": ["obscura-mcp-server"]
+        "args": ["-y", "obscura-mcp-server"]
       }
     }
   }
@@ -114,7 +114,7 @@ Restart VSCode after editing.
     "obscura": {
       "type": "stdio",
       "command": "bunx",
-      "args": ["obscura-mcp-server"]
+      "args": ["-y", "obscura-mcp-server"]
     }
   }
 }
@@ -150,7 +150,7 @@ Cursor also supports UI configuration: Settings → Features → Model Context P
   "mcp": {
     "obscura": {
       "type": "local",
-      "command": ["bunx", "obscura-mcp-server"],
+      "command": ["bunx", "-y", "obscura-mcp-server"],
       "environment": {
         "OBSCURA_PATH": "/usr/local/bin/obscura"
       },
@@ -175,7 +175,7 @@ Cursor also supports UI configuration: Settings → Features → Model Context P
   "mcpServers": {
     "obscura": {
       "command": "bunx",
-      "args": ["obscura-mcp-server"]
+      "args": ["-y", "obscura-mcp-server"]
     }
   }
 }
@@ -202,7 +202,7 @@ claude mcp list
   "mcpServers": {
     "obscura": {
       "command": "bunx",
-      "args": ["obscura-mcp-server"]
+      "args": ["-y", "obscura-mcp-server"]
     }
   }
 }
@@ -227,7 +227,7 @@ Then configure the adapter to point to the Obscura MCP server:
   "mcpServers": {
     "obscura": {
       "command": "bunx",
-      "args": ["obscura-mcp-server"]
+      "args": ["-y", "obscura-mcp-server"]
     }
   }
 }
