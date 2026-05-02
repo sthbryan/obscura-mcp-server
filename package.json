@@ -3,6 +3,14 @@
   "version": "0.1.1",
   "type": "module",
   "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sthbryan/obscura-mcp-server"
+  },
+  "author": {
+    "name": "sthbryan",
+    "url": "https://justcallmebryan.com"
+  },
   "description": "MCP server for Obscura - web scraping, HTML to Markdown conversion, and URL content processing",
   "main": "./dist/index.js",
   "bin": {
