@@ -1,6 +1,6 @@
 {
   "name": "obscura-mcp-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "private": false,
   "description": "MCP server for Obscura - web scraping, HTML to Markdown conversion, and URL content processing",
