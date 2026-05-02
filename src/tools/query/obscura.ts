@@ -1,7 +1,3 @@
-/**
- * Query with Obscura
- */
-
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import Fuse from "fuse.js";
 import { execAsync } from "@/utils/exec";
@@ -17,12 +13,7 @@ export async function queryWithObscura(
 ): Promise<CallToolResult> {
   const { selector, text } = options;
 
-  let evalString: string | undefined;
-
-  if (selector) {
-    const escapedSelector = selector.replace(/'/g, "\\'");
-    evalString = `JSON.stringify(Array.from(document.querySelectorAll('${escapedSelector}')).map(e=>e.textContent.trim()).filter(t=>t))`;
-  } else if (!selector && !text) {
+  if (!selector && !text) {
     return {
       content: [
         {
@@ -32,6 +23,15 @@ export async function queryWithObscura(
       ],
       isError: true,
     };
+  }
+
+  let evalString: string | undefined;
+
+  if (selector) {
+    const escapedSelector = selector.replace(/'/g, "\\'");
+    evalString = `JSON.stringify(Array.from(document.querySelectorAll('${escapedSelector}')).map(e=>e.textContent.trim()).filter(t=>t))`;
+  } else if (text) {
+    evalString = `JSON.stringify(Array.from(document.querySelectorAll('*')).filter(e=>e.textContent.includes('${text}')).map(e=>e.textContent.trim()).filter(t=>t).slice(0,20))`;
   }
 
   const stdout = await execAsync({
@@ -57,7 +57,7 @@ export async function queryWithObscura(
     }
   }
 
-  if (text && result.length > 0) {
+  if (text && selector && result.length > 0) {
     const fuse = new Fuse(result, { threshold: 0.4 });
     const matches = fuse.search(text);
     result = matches.map((m) => m.item);
@@ -70,6 +70,7 @@ export async function queryWithObscura(
         text: JSON.stringify(
           {
             url,
+            source: "obscura",
             selector,
             text,
             result,

@@ -59,6 +59,7 @@ export async function queryWithNative(
           text: JSON.stringify(
             {
               url,
+              source: "native",
               selector,
               text,
               result,

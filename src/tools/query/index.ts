@@ -95,7 +95,9 @@ export function createQueryHandler() {
         if (first.type === "text") {
           try {
             const parsed = JSON.parse(first.text);
-            parsed.selector_used = selector_used;
+            if (parsed.selector_used === undefined) {
+              parsed.selector_used = selector_used;
+            }
             first.text = JSON.stringify(parsed, null, 2);
           } catch {}
         }
