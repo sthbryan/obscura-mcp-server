@@ -1,6 +1,16 @@
+/**
+ * Query Tool - native implementation
+ *
+ * Uses an LRU cache keyed on url+selector+text so repeated identical queries
+ * don't reparse the page. Also dedupes text content before fuzzy search
+ * because node-html-parser returns each parent's text including all children.
+ */
+
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import Fuse from "fuse.js";
 import { parse } from "node-html-parser";
+import { fetchWithTimeout } from "@/utils/fetch-timeout";
+import { LruCache } from "@/utils/lru";
 
 interface QueryOptions {
   selector?: string;
@@ -18,15 +28,37 @@ const MAIN_CONTENT_SELECTORS = [
 
 const DEFAULT_CONTENT_SELECTORS = "p, h1, h2, h3, h4, h5, h6, li, a, span";
 
-function findBestSelector(html: string): string {
-  const root = parse(html);
+interface CachedEntry {
+  parser: ReturnType<typeof parse>;
+}
+
+const htmlCache = new LruCache<string, CachedEntry>(64, 2 * 60_000);
+const resultCache = new LruCache<string, string[]>(256, 2 * 60_000);
+
+function findBestSelector(root: ReturnType<typeof parse>): string {
   for (const selector of MAIN_CONTENT_SELECTORS) {
     const elements = root.querySelectorAll(selector);
-    if (elements.length > 0 && selector !== "body") {
+    if (elements.length > 0) {
       return selector;
     }
   }
   return DEFAULT_CONTENT_SELECTORS;
+}
+
+/**
+ * Dedupe an array of strings while preserving order. Useful because
+ * querySelectorAll collects parent and child texts which often contain
+ * the same content.
+ */
+function dedupeStrings(items: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const s of items) {
+    if (!s || seen.has(s)) continue;
+    seen.add(s);
+    out.push(s);
+  }
+  return out;
 }
 
 export async function queryWithNative(url: string, options: QueryOptions): Promise<CallToolResult> {
@@ -46,13 +78,23 @@ export async function queryWithNative(url: string, options: QueryOptions): Promi
     };
   }
 
-  try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
+  const resultKey = `${selector || ""}|${text || ""}|${url}`;
+  const cachedResult = resultCache.get(resultKey);
+  if (cachedResult) {
+    return jsonResult({
+      url,
+      source: "native",
+      selector,
+      selector_used: selector || null,
+      text,
+      result: cachedResult,
+      cached: true,
+      timestamp: new Date().toISOString(),
     });
+  }
+
+  try {
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       return {
@@ -69,34 +111,29 @@ export async function queryWithNative(url: string, options: QueryOptions): Promi
     }
 
     const html = await response.text();
-    let resolvedSelector = selector;
 
-    if (!resolvedSelector) {
-      resolvedSelector = text ? DEFAULT_CONTENT_SELECTORS : findBestSelector(html);
+    let entry = htmlCache.get(url);
+    if (!entry) {
+      entry = { parser: parse(html) };
+      htmlCache.set(url, entry);
     }
+    const root = entry.parser;
 
-    const result = parseHtml(html, { selector: resolvedSelector, text });
+    const resolvedSelector =
+      selector ?? (text ? DEFAULT_CONTENT_SELECTORS : findBestSelector(root));
 
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify(
-            {
-              url,
-              source: "native",
-              selector,
-              selector_used: resolvedSelector,
-              text,
-              result,
-              timestamp: new Date().toISOString(),
-            },
-            null,
-            2
-          ),
-        },
-      ],
-    };
+    const result = collectMatches(root, resolvedSelector, text);
+    resultCache.set(resultKey, result);
+
+    return jsonResult({
+      url,
+      source: "native",
+      selector,
+      selector_used: resolvedSelector,
+      text,
+      result,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Query failed";
     return {
@@ -106,32 +143,20 @@ export async function queryWithNative(url: string, options: QueryOptions): Promi
   }
 }
 
-function parseHtml(html: string, options: { selector?: string; text?: string }): string[] {
-  const { selector, text } = options;
-  const root = parse(html);
+function collectMatches(root: ReturnType<typeof parse>, selector: string, text?: string): string[] {
+  const escaped = selector.replace(/'/g, "\\'");
+  const elements = root.querySelectorAll(escaped);
+  const matches = dedupeStrings(elements.map((el) => el.text.trim()).filter((t) => t.length > 0));
 
-  if (selector) {
-    const escapedSelector = selector.replace(/'/g, "\\'");
-    const elements = root.querySelectorAll(escapedSelector);
-    const results = elements.map((el) => el.text.trim()).filter((t) => t.length > 0);
-
-    if (text && results.length > 0) {
-      const fuse = new Fuse(results, { threshold: 0.4 });
-      const matches = fuse.search(text);
-      return matches.map((m) => m.item);
-    }
-
-    return results;
+  if (text && matches.length > 0) {
+    const fuse = new Fuse(matches, { threshold: 0.4 });
+    return fuse.search(text).map((m) => m.item);
   }
+  return matches;
+}
 
-  if (text) {
-    const allElements = root.querySelectorAll("*");
-    const allText = allElements.map((el) => el.text.trim()).filter((t) => t.length > 0);
-
-    const fuse = new Fuse(allText, { threshold: 0.4 });
-    const matches = fuse.search(text);
-    return matches.map((m) => m.item);
-  }
-
-  return [];
+function jsonResult(payload: unknown): CallToolResult {
+  return {
+    content: [{ type: "text" as const, text: JSON.stringify(payload, null, 2) }],
+  };
 }
