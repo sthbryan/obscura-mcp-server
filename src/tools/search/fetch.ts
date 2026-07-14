@@ -1,22 +1,28 @@
 /**
  * Search Tool
- * Search the web using Obscura or fallback to DuckDuckGo API
+ * Search the web using Obscura or fallback to DuckDuckGo API.
+ *
+ * Results are cached for 5 minutes via an LRU keyed on query+limit.
  */
 
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import type { SearchResult } from "@/types/search";
+import { fetchWithTimeout } from "@/utils/fetch-timeout";
+import { LruCache } from "@/utils/lru";
+
+const cache = new LruCache<string, SearchResult[]>(256, 5 * 60_000);
 
 export async function searchWithNative(query: string, limit: number): Promise<CallToolResult> {
+  const cacheKey = `${limit}|${query}`;
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    return jsonResult({ query, source: "native", results: cached.slice(0, limit) });
+  }
+
   try {
     const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
 
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
-    });
-
+    const response = await fetchWithTimeout(url);
     if (!response.ok) {
       throw new Error(`DuckDuckGo API error: ${response.status}`);
     }
@@ -29,7 +35,7 @@ export async function searchWithNative(query: string, limit: number): Promise<Ca
     const results: SearchResult[] = [];
 
     if (data.Results) {
-      for (const item of data.Results.slice(0, limit)) {
+      for (const item of data.Results) {
         results.push({
           title: stripHtml(item.Text),
           url: item.FirstURL,
@@ -37,8 +43,8 @@ export async function searchWithNative(query: string, limit: number): Promise<Ca
       }
     }
 
-    if (data.RelatedTopics && results.length < limit) {
-      for (const item of data.RelatedTopics.slice(0, limit - results.length)) {
+    if (data.RelatedTopics) {
+      for (const item of data.RelatedTopics) {
         if (item.FirstURL) {
           results.push({
             title: stripHtml(item.Text),
@@ -48,22 +54,9 @@ export async function searchWithNative(query: string, limit: number): Promise<Ca
       }
     }
 
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify(
-            {
-              query,
-              source: "native",
-              results,
-            },
-            null,
-            2
-          ),
-        },
-      ],
-    };
+    cache.set(cacheKey, results);
+
+    return jsonResult({ query, source: "native", results: results.slice(0, limit) });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Search failed";
     return {
@@ -75,4 +68,10 @@ export async function searchWithNative(query: string, limit: number): Promise<Ca
 
 function stripHtml(text: string): string {
   return text.replace(/<[^>]+>/g, "").trim();
+}
+
+function jsonResult(payload: unknown): CallToolResult {
+  return {
+    content: [{ type: "text" as const, text: JSON.stringify(payload, null, 2) }],
+  };
 }
