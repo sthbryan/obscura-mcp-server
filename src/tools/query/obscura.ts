@@ -76,7 +76,16 @@ export async function queryWithObscura(
 
   const root = parse(stdout);
   const allElements = root.querySelectorAll("p, h1, h2, h3, h4, h5, h6, li, a, span, div");
-  const allText = allElements.map((el) => el.text.trim()).filter((t) => t.length > 0);
+
+  const seen = new Set<string>();
+  const allText: string[] = [];
+  for (const el of allElements) {
+    const t = el.text.trim();
+    if (t.length > 0 && !seen.has(t)) {
+      seen.add(t);
+      allText.push(t);
+    }
+  }
 
   const fuse = new Fuse(allText, { threshold: 0.3 });
   const matches = fuse.search(text || "").slice(0, 10);
