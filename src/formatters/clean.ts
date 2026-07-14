@@ -1,8 +1,11 @@
 /**
- * Clean HTML - Remove unnecessary tags for LLM consumption
+ * Clean HTML - Remove unnecessary tags for LLM consumption.
+ *
+ * Single-pass: we parse the HTML exactly once and mutate the tree in place,
+ * avoiding the 3 redundant parses the previous implementation performed.
  */
 
-import { parse } from "node-html-parser";
+import { type HTMLElement, parse } from "node-html-parser";
 import type { FormatterType } from "@/types/formatters";
 
 const USELESS_TAGS = [
@@ -17,7 +20,7 @@ const USELESS_TAGS = [
   "button",
 ];
 
-const USEFUL_ATTRS = ["href", "src"];
+const USEFUL_ATTRS = new Set(["href", "src"]);
 
 const NOISE_SELECTORS = [
   "nav",
@@ -45,8 +48,15 @@ const NOISE_SELECTORS = [
   '[aria-hidden="true"]',
 ];
 
-export function removeNoiseElements(html: string): string {
-  const root = parse(html);
+function stripUselessTags(root: HTMLElement): void {
+  for (const tag of USELESS_TAGS) {
+    for (const el of root.querySelectorAll(tag)) {
+      el.remove();
+    }
+  }
+}
+
+function stripNoiseSelectors(root: HTMLElement): void {
   for (const selector of NOISE_SELECTORS) {
     try {
       for (const el of root.querySelectorAll(selector)) {
@@ -54,34 +64,39 @@ export function removeNoiseElements(html: string): string {
       }
     } catch {}
   }
-
-  return root.toString();
 }
 
-export function cleanHtml(html: string): string {
-  let result = html;
-
-  const root = parse(result);
-  for (const tag of USELESS_TAGS) {
-    for (const el of root.querySelectorAll(tag)) {
-      el.remove();
-    }
-  }
-  result = root.toString();
-
-  result = removeNoiseElements(result);
-
-  const cleanRoot = parse(result);
-  for (const el of cleanRoot.querySelectorAll("*")) {
+function stripUselessAttributes(root: HTMLElement): void {
+  for (const el of root.querySelectorAll("*")) {
     const attrs = el.attributes;
     for (const attr of Object.keys(attrs)) {
-      if (!USEFUL_ATTRS.includes(attr)) {
+      if (!USEFUL_ATTRS.has(attr)) {
         el.removeAttribute(attr);
       }
     }
   }
+}
 
-  return cleanRoot.toString();
+/**
+ * Single-pass HTML cleanup: removes useless tags, noise sections, and
+ * most attributes, returning a stripped-down tree suitable for LLM input.
+ */
+export function cleanHtml(html: string): string {
+  const root = parse(html);
+  stripUselessTags(root);
+  stripNoiseSelectors(root);
+  stripUselessAttributes(root);
+  return root.toString();
+}
+
+/**
+ * Kept for backwards compatibility; equivalent to the noise removal stage of
+ * {@link cleanHtml}. Internally performs a single parse.
+ */
+export function removeNoiseElements(html: string): string {
+  const root = parse(html);
+  stripNoiseSelectors(root);
+  return root.toString();
 }
 
 export function sanitizeWhitespace(text: string, type: FormatterType): string {
