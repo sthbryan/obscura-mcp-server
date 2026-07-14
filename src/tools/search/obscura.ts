@@ -30,7 +30,7 @@ export async function searchWithObscura(query: string, limit: number): Promise<C
   };
 }
 
-function parseLinks(text: string, searchUrl: string, limit: number): SearchResult[] {
+export function parseLinks(text: string, searchUrl: string, limit: number): SearchResult[] {
   const results: SearchResult[] = [];
   const seenUrls = new Set<string>();
 
@@ -61,7 +61,7 @@ function parseLinks(text: string, searchUrl: string, limit: number): SearchResul
   return results;
 }
 
-function extractRealUrl(url: string): string {
+export function extractRealUrl(url: string): string {
   const uddgMatch = url.match(/uddg=([^&]+)/);
   if (uddgMatch) {
     try {
