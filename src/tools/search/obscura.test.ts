@@ -1,5 +1,5 @@
-import { describe, expect, it } from "bun:test";
-import { extractRealUrl, parseLinks } from "./obscura";
+import { afterEach, describe, expect, it, mock } from "bun:test";
+import { extractRealUrl, parseLinks, searchWithObscura } from "./obscura";
 
 const SEARCH_URL = "https://duckduckgo.com/html/?q=typescript";
 
@@ -62,5 +62,54 @@ describe("parseLinks", () => {
     const results = parseLinks(raw, SEARCH_URL, 10);
     expect(results).toHaveLength(1);
     expect(results[0]?.url).toBe("https://example.com");
+  });
+});
+
+describe("searchWithObscura", () => {
+  afterEach(() => {
+    mock.restore();
+  });
+
+  it("calls execAsync with stealth + links dump and returns parsed results", async () => {
+    mock.module("@/utils/obscura", () => ({
+      getObscuraPath: () => "/bin/echo",
+      checkObscura: async () => ({ available: true }),
+    }));
+    mock.module("@/utils/exec", () => ({
+      execAsync: async () =>
+        [
+          "https://duckduckgo.com/l/?uddg=https%3A%2F%2Fa.com%2F\tSite A",
+          "https://duckduckgo.com/l/?uddg=https%3A%2F%2Fb.com%2F\tSite B",
+        ].join("\n"),
+    }));
+
+    const result = await searchWithObscura("test query", 5);
+    expect(result.isError).toBeUndefined();
+    const p = JSON.parse((result.content[0] as { text: string }).text) as {
+      query: string;
+      source: string;
+      results: Array<{ title: string; url: string }>;
+    };
+    expect(p.source).toBe("obscura");
+    expect(p.query).toBe("test query");
+    expect(p.results).toHaveLength(2);
+    expect(p.results[0]?.url).toBe("https://a.com/");
+  });
+
+  it("returns an empty results list when exec output has no parsable links", async () => {
+    mock.module("@/utils/obscura", () => ({
+      getObscuraPath: () => "/bin/echo",
+      checkObscura: async () => ({ available: true }),
+    }));
+    mock.module("@/utils/exec", () => ({
+      execAsync: async () => "no tab-separated lines here\njust plain text",
+    }));
+
+    const result = await searchWithObscura("weird", 5);
+    expect(result.isError).toBeUndefined();
+    const p = JSON.parse((result.content[0] as { text: string }).text) as {
+      results: unknown[];
+    };
+    expect(p.results).toEqual([]);
   });
 });
