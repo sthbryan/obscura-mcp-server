@@ -27,20 +27,20 @@
     "postinstall": "[ -d .git ] && lefthook install || true"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.13",
+    "@biomejs/biome": "2.5.3",
     "@types/bun": "latest",
-    "@types/turndown": "^5.0.6",
-    "lefthook": "^2.1.6"
+    "@types/turndown": "5.0.6",
+    "lefthook": "2.1.10"
   },
   "peerDependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "fuse.js": "^7.3.0",
-    "node-html-parser": "^7.1.0",
-    "turndown": "^7.2.4",
-    "zod": "^4.3.6"
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "fuse.js": "7.5.0",
+    "node-html-parser": "9.0.0",
+    "turndown": "7.2.4",
+    "zod": "4.4.3"
   },
   "keywords": [
     "mcp",
