@@ -106,6 +106,12 @@ bun run check
 
 # Lint and fix
 bun run lint:fix
+
+# Unit tests + coverage
+bun test --coverage
+
+# Smoke test (boots the server and calls every tool)
+bun run smoke
 ```
 
 ## License
