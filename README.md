@@ -114,6 +114,25 @@ bun test --coverage
 bun run smoke
 ```
 
+## Release / publish
+
+CI on PR/`main`: lint, test, smoke, build.  
+On tag `v*` → publish to npm + GitHub Release.
+
+```bash
+# 1) GitHub secret NPM_TOKEN (publish token)
+# 2) From a clean main branch:
+bun run release              # tags current package.json version
+bun run release patch        # bump patch + tag + push
+bun run release minor
+bun run release major
+bun run release 0.3.0        # exact version
+bun run release --no-push    # tag only
+```
+
+Tag must match `package.json` (e.g. `v0.2.1` ↔ `0.2.1`).  
+MCP server version is read from `package.json` at runtime.
+
 ## License
 
 MIT

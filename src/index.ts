@@ -2,10 +2,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerTools } from "./tools";
+import { VERSION } from "./version";
 
 const server = new McpServer({
   name: "obscura-mcp-server",
-  version: "0.1.2",
+  version: VERSION,
 });
 
 registerTools(server);
@@ -13,4 +14,4 @@ registerTools(server);
 const transport = new StdioServerTransport();
 
 await server.connect(transport);
-console.error("Obscura MCP Server running on stdio");
+console.error(`Obscura MCP Server running on stdio (v${VERSION})`);

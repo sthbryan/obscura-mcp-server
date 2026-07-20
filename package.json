@@ -26,7 +26,8 @@
     "smoke": "bun run scripts/smoke-test.ts",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
-    "prepublish": "bun run build",
+    "prepublishOnly": "bun run build",
+    "release": "bun run scripts/release.ts",
     "postinstall": "[ -d .git ] && lefthook install || true"
   },
   "devDependencies": {
